@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "ListaDinEncadDupla.h" //inclui os Protótipos
+#include "ListaDinEncadDupla.h" //inclui os Protï¿½tipos
 
-//Definição do tipo lista
+//Definiï¿½ï¿½o do tipo lista
 struct elemento{
     struct elemento *ant;
     struct aluno dados;
@@ -70,7 +70,7 @@ int insere_lista_final(Lista* li, struct aluno al){
         return 0;
     no->dados = al;
     no->prox = NULL;
-    if((*li) == NULL){//lista vazia: insere início
+    if((*li) == NULL){//lista vazia: insere inï¿½cio
         no->ant = NULL;
         *li = no;
     }else{
@@ -95,7 +95,7 @@ int insere_lista_inicio(Lista* li, struct aluno al){
     no->dados = al;
     no->prox = (*li);
     no->ant = NULL;
-    if(*li != NULL)//lista não vazia: apontar para o anterior!
+    if(*li != NULL)//lista nï¿½o vazia: apontar para o anterior!
         (*li)->ant = no;
     *li = no;
     return 1;
@@ -126,7 +126,7 @@ int remove_lista_final(Lista* li){
     while(no->prox != NULL)
         no = no->prox;
 
-    if(no->ant == NULL)//remover o primeiro e único
+    if(no->ant == NULL)//remover o primeiro e ï¿½nico
         *li = no->prox;
     else
         no->ant->prox = NULL;
@@ -175,3 +175,27 @@ void imprime_lista(Lista* li){
     }
 }
 
+int conta_lista_nota(Lista* li, float n1) {
+    if (li == NULL) return 0;
+
+    int cont = 0;
+
+    while (*li != NULL) {
+        if ((*li)->dados.n1 == n1) {
+            cont++;
+        }
+        
+        /*
+            O Pulo do gato desse exercÃ­cio estÃ¡ aqui
+
+            Se deixar o ponteiro ir atÃ© o NULL, a referÃªncia para a lista serÃ¡ perdida, 
+            entÃ£o verifico se chegamos ao fim e termino o loop manualmente
+        */
+        if ((*li)->prox != NULL) *li = (*li)->prox;
+        else break;
+    }
+
+    while ((*li)->ant != NULL) *li = (*li)->ant;
+
+    return cont;
+}

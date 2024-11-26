@@ -19,3 +19,5 @@ int remove_lista_final(Lista* li);
 int tamanho_lista(Lista* li);
 int lista_vazia(Lista* li);
 void imprime_lista(Lista* li);
+
+int conta_lista_nota(Lista* li, float n1);
