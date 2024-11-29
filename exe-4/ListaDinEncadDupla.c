@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "ListaDinEncadDupla.h" //inclui os Prot�tipos
+#include "ListaDinEncadDupla.h" //inclui os Prot�tipos
 
-//Defini��o do tipo lista
+//Defini��o do tipo lista
 struct elemento{
     struct elemento *ant;
     struct aluno dados;
@@ -17,17 +17,19 @@ Lista* cria_lista(){
     return li;
 }
 
-void libera_lista(Lista* li){
-    if(li != NULL){
-        Elem* no;
-        while((*li) != NULL){
-            no = *li;
-            *li = (*li)->prox;
+void libera_lista(Lista* li) {
+    if (li != NULL) {
+        Elem* no = *li;
+        Elem* temp;
+        do {
+            temp = no->prox;
             free(no);
-        }
+            no = temp;
+        } while (no != *li);
         free(li);
     }
 }
+
 
 int consulta_lista_pos(Lista* li, int pos, struct aluno *al){
     if(li == NULL || pos <= 0)
@@ -61,77 +63,112 @@ int consulta_lista_mat(Lista* li, int mat, struct aluno *al){
     }
 }
 
-int insere_lista_final(Lista* li, struct aluno al){
-    if(li == NULL)
+/*
+    - Se a lista não estiver vazia, o novo nó é inserido após o último nó.
+    - O ponteiro "ant" do novo nó aponta para o último nó da lista.
+    - O ponteiro "prox" do último nó é atualizado para o novo nó.
+    - O ponteiro "prox" do novo nó aponta para o primeiro nó.
+*/
+
+int insere_lista_final(Lista* li, struct aluno al) {
+    if (li == NULL)
         return 0;
-    Elem *no;
-    no = (Elem*) malloc(sizeof(Elem));
-    if(no == NULL)
+
+    Elem* no = (Elem*) malloc(sizeof(Elem));
+    if (no == NULL)
         return 0;
+
     no->dados = al;
-    no->prox = NULL;
-    if((*li) == NULL){//lista vazia: insere in�cio
-        no->ant = NULL;
+    if (*li == NULL) {
+        no->prox = no;
+        no->ant = no;
         *li = no;
-    }else{
-        Elem *aux;
-        aux = *li;
-        while(aux->prox != NULL){
-            aux = aux->prox;
-        }
-        aux->prox = no;
-        no->ant = aux;
-    }
-    return 1;
-}
-
-int insere_lista_inicio(Lista* li, struct aluno al){
-    if(li == NULL)
-        return 0;
-    Elem* no;
-    no = (Elem*) malloc(sizeof(Elem));
-    if(no == NULL)
-        return 0;
-    no->dados = al;
-    no->prox = (*li);
-    no->ant = NULL;
-    if(*li != NULL)//lista n�o vazia: apontar para o anterior!
+    } else {
+        Elem* ultimo = (*li)->ant;
+        no->prox = *li;
+        no->ant = ultimo;
+        ultimo->prox = no;
         (*li)->ant = no;
-    *li = no;
+    }
+
     return 1;
 }
 
-int remove_lista_inicio(Lista* li){
-    if(li == NULL)
-        return 0;
-    if((*li) == NULL)//lista vazia
+/*
+    - Se a lista não estiver vazia, o novo nó é inserido antes do primeiro nó.
+    - O ponteiro "prox" do novo nó aponta para o primeiro nó da lista.
+    - O ponteiro "ant" do primeiro nó é atualizado para o novo nó.
+    - O ponteiro da lista agora aponta para o novo nó.
+*/
+
+int insere_lista_inicio(Lista* li, struct aluno al) {
+    if (li == NULL)
         return 0;
 
-    Elem *no = *li;
-    *li = no->prox;
-    if(no->prox != NULL)
-        no->prox->ant = NULL;
+    Elem* no = (Elem*) malloc(sizeof(Elem));
+    if (no == NULL)
+        return 0;
 
-    free(no);
+    no->dados = al;
+    if (*li == NULL) {
+        no->prox = no;
+        no->ant = no;
+        *li = no;
+    } else {
+        Elem* primeiro = *li;
+        no->prox = primeiro;
+        no->ant = primeiro->ant;
+        primeiro->ant->prox = no;
+        primeiro->ant = no;
+        *li = no;
+    }
+
     return 1;
 }
 
-int remove_lista_final(Lista* li){
-    if(li == NULL)
+/*
+    - O primeiro nó é removido e o ponteiro da lista é atualizado para o próximo nó.
+    - O ponteiro "ant" do novo primeiro nó é ajustado para o último nó.
+*/
+int remove_lista_inicio(Lista* li) {
+    if (li == NULL)
         return 0;
-    if((*li) == NULL)//lista vazia
+
+    Elem* primeiro = *li;
+    if (primeiro->prox == primeiro) {
+        free(primeiro);
+        *li = NULL;
+    } else {
+        Elem* ultimo = primeiro->ant;
+        *li = primeiro->prox;
+        primeiro->prox->ant = ultimo;
+        ultimo->prox = primeiro->prox;
+        free(primeiro);
+    }
+
+    return 1;
+}
+
+/* 
+    - O último nó é removido e o ponteiro "ant" do novo último nó é ajustado para o penúltimo nó.
+    - O ponteiro "prox" do novo último nó aponta para o primeiro nó.
+*/
+
+int remove_lista_final(Lista* li) {
+    if (li == NULL)
         return 0;
 
-    Elem *no = *li;
-    while(no->prox != NULL)
-        no = no->prox;
+    Elem* ultimo = (*li)->ant;
+    if (ultimo == *li) {
+        free(ultimo);
+        *li = NULL;
+    } else {
+        Elem* penultimo = ultimo->ant;
+        penultimo->prox = *li;
+        (*li)->ant = penultimo;
+        free(ultimo);
+    }
 
-    if(no->ant == NULL)//remover o primeiro e �nico
-        *li = no->prox;
-    else
-        no->ant->prox = NULL;
-
-    free(no);
     return 1;
 }
 
@@ -159,19 +196,25 @@ int lista_vazia(Lista* li){
     return 0;
 }
 
-void imprime_lista(Lista* li){
-    if(li == NULL)
+/* 
+    
+    - Usamos o do while para imprimir todos os elementos:
+        - Começamos pelo primeiro nó e imprimimos suas informações.
+        - O laço continua até voltar ao primeiro nó (quando o nó atual for igual ao primeiro).
+    
+    - O do while é importante porque precisamos garantir que o primeiro nó seja impresso.
+    - Dessa maneira podemos fazer nosso while baseado na condição de comparação com o primeiro nó (já que ele já foi impresso).
+*/
+void imprime_lista(Lista* li) {
+    if (li == NULL)
         return;
+
     Elem* no = *li;
-    while(no != NULL){
-        printf("Matricula: %d\n",no->dados.matricula);
-        printf("Nome: %s\n",no->dados.nome);
-        printf("Notas: %f %f %f\n",no->dados.n1,
-                                   no->dados.n2,
-                                   no->dados.n3);
+    do {
+        printf("Matricula: %d\n", no->dados.matricula);
+        printf("Nome: %s\n", no->dados.nome);
+        printf("Notas: %f %f %f\n", no->dados.n1, no->dados.n2, no->dados.n3);
         printf("-------------------------------\n");
-
         no = no->prox;
-    }
+    } while (no != *li);
 }
-
